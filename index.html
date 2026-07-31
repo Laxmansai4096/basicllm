@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FDE Mastery Roadmap & Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Top Navigation & Dashboard Stats -->
+    <header>
+        <div class="brand">
+            <span style="font-size: 1.8rem;">🚀</span>
+            <div>
+                <h1>FDE MASTERY</h1>
+                <span class="brand-badge">FORWARD DEPLOYED ENGINEER</span>
+            </div>
+        </div>
+
+        <div class="global-stats">
+            <div class="progress-container">
+                <div class="progress-info">
+                    <span class="progress-label">Overall Mastery Progress</span>
+                    <span id="overall-progress-percent" class="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="overall-progress-fill" class="progress-bar-fill"></div>
+                </div>
+            </div>
+
+            <div class="stat-counters">
+                <div class="stat-item">
+                    <div id="stat-completed" class="stat-val completed">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-item">
+                    <div id="stat-in-progress" class="stat-val in-progress">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+                <div class="stat-item">
+                    <div id="stat-remaining" class="stat-val remaining">0</div>
+                    <div class="stat-label">Remaining</div>
+                </div>
+            </div>
+
+            <!-- Theme Toggle Button -->
+            <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Light/Dark Mode" style="margin-left: 1.5rem;">
+                <span class="theme-toggle-icon">🌙</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <div class="app-container">
+        
+        <!-- Left Column: Study Planner (To-Do List) -->
+        <aside class="todo-sidebar">
+            <div class="sidebar-header">
+                <h2><span class="icon">📅</span> Today's Study Plan</h2>
+            </div>
+            
+            <div class="todo-add-container">
+                <form id="todo-form" class="todo-add-form" onsubmit="event.preventDefault();">
+                    <input type="text" id="todo-input" class="todo-input" placeholder="Add custom task or select subtopic..." required>
+                    <button type="submit" id="todo-add-btn" class="todo-add-btn">Add</button>
+                </form>
+            </div>
+
+            <div class="todo-list-scroll">
+                <div id="todo-list" class="todo-list">
+                    <!-- Dynamic To-Do Items will go here -->
+                </div>
+            </div>
+
+            <!-- Pomodoro Timer Widget -->
+            <div class="pomodoro-widget">
+                <div class="pomodoro-header">
+                    <span class="pomodoro-icon">⏱️</span>
+                    <span class="pomodoro-title">Focus Session</span>
+                </div>
+                <div class="pomodoro-timer" id="pomo-display">25:00</div>
+                <div class="pomodoro-controls">
+                    <button id="pomo-start-btn" class="pomo-btn play" title="Start Focus Session">▶ Start</button>
+                    <button id="pomo-reset-btn" class="pomo-btn reset" title="Reset Timer">↺ Reset</button>
+                </div>
+                <div class="pomodoro-footer">
+                    <span id="pomo-status">Ready to Focus</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Column: Visual Roadmap -->
+        <main class="roadmap-area">
+            <div class="roadmap-header">
+                <div class="roadmap-title-area">
+                    <h2>FDE Learning Curriculum</h2>
+                    <p>Select a learning phase below to load its roadmap path.</p>
+                </div>
+                
+                <div class="roadmap-filters">
+                    <input type="text" id="search-input" class="todo-input" style="width: 250px;" placeholder="Search in active phase (e.g. Python, RAG)...">
+                </div>
+            </div>
+
+            <!-- Phase Tab Navigation Bar -->
+            <div class="phase-tabs-container">
+                <div id="phase-tabs" class="phase-tabs">
+                    <!-- Dynamic Phase Tab Buttons rendered here -->
+                </div>
+            </div>
+
+            <!-- Roadmap Legend & Backup Panel -->
+            <div class="roadmap-legend-backup">
+                <div class="legend-items">
+                    <span class="legend-item"><span class="status-indicator not-started"></span> Not Started</span>
+                    <span class="legend-item"><span class="status-indicator in-progress"></span> In Progress</span>
+                    <span class="legend-item"><span class="status-indicator completed"></span> Completed</span>
+                    <span class="legend-item"><span class="status-indicator not-required"></span> Skip</span>
+                </div>
+                <div class="backup-actions">
+                    <button id="export-notes-btn" class="filter-btn small" title="Export study notes to Markdown file">📝 Export Study Journal</button>
+                    <button id="export-backup-btn" class="filter-btn small" title="Export Backup to file">📥 Export Backup</button>
+                    <button id="import-backup-btn" class="filter-btn small" title="Import Backup from file">📤 Import Backup</button>
+                    <input type="file" id="import-file-input" style="display: none;" accept=".json">
+                </div>
+            </div>
+
+            <!-- Dynamic list of Phases -->
+            <div id="phases-list" class="phases-list">
+                <!-- Phases and Subtopic grids will be rendered here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Details Slide-out Drawer Overlay & Container -->
+    <div id="drawer-backdrop" class="drawer-backdrop"></div>
+    
+    <div id="details-drawer" class="drawer">
+        <div class="drawer-header">
+            <div class="drawer-title-block">
+                <span id="drawer-code" class="drawer-code">0.0</span>
+                <h3 id="drawer-title" class="drawer-title">Subtopic Title</h3>
+            </div>
+            <button id="drawer-close" class="drawer-close">&times;</button>
+        </div>
+
+        <div class="drawer-content">
+            <!-- 1. What it is -->
+            <div class="drawer-section">
+                <span class="drawer-section-title">What it is</span>
+                <p id="drawer-what-it-is" class="drawer-text">Description goes here...</p>
+            </div>
+
+            <!-- 2. Focus Points -->
+            <div class="drawer-section">
+                <span class="drawer-section-title">Key Focus Points</span>
+                <ul id="drawer-focus-list" class="focus-list">
+                    <!-- List items will be populated -->
+                </ul>
+            </div>
+
+            <!-- Dynamic Subtopics Breakdown -->
+            <div id="drawer-subtopics-section" class="drawer-section" style="display: none;">
+                <span class="drawer-section-title">Subtopics Breakdown</span>
+                <div id="drawer-subtopics-list" class="drawer-subtopics-list">
+                    <!-- Expanded interactive subtopics here -->
+                </div>
+            </div>
+
+            <!-- 3. Tools -->
+            <div class="drawer-section">
+                <span class="drawer-section-title">Most-Used Tools</span>
+                <div id="drawer-tools" class="tools-tag-container">
+                    <!-- Tool tags will be populated -->
+                </div>
+            </div>
+
+            <!-- 4. Pros & Cons -->
+            <div class="pro-con-grid">
+                <div class="pro-card">
+                    <h4><span>👍</span> Pros / Advantages</h4>
+                    <p id="drawer-pros" class="pro-con-text">Pros description...</p>
+                </div>
+                <div class="con-card">
+                    <h4><span>👎</span> Cons / Disadvantages</h4>
+                    <p id="drawer-cons" class="pro-con-text">Cons description...</p>
+                </div>
+            </div>
+
+            <!-- 5. When to Use & When to Avoid -->
+            <div class="drawer-section">
+                <span class="drawer-section-title">When to Use</span>
+                <p id="drawer-when-to-use" class="drawer-text">When to use...</p>
+            </div>
+
+            <div class="drawer-section">
+                <span class="drawer-section-title">When to Avoid</span>
+                <p id="drawer-when-to-avoid" class="drawer-text">When to avoid...</p>
+            </div>
+
+            <!-- 6. Applications -->
+            <div class="drawer-section">
+                <span class="drawer-section-title">Applications & Use Cases</span>
+                <p id="drawer-applications" class="drawer-text">Applications...</p>
+            </div>
+
+            <!-- 7. Core Features -->
+            <div class="drawer-section">
+                <span class="drawer-section-title">Core Features / Techniques</span>
+                <p id="drawer-core-features" class="drawer-text">Core features...</p>
+            </div>
+
+            <!-- Dynamic General Recommended Course Links -->
+            <div id="drawer-general-resources-section" class="drawer-section" style="display: none;">
+                <span class="drawer-section-title">Recommended Courses & Reference Links</span>
+                <div id="drawer-general-resources-list" class="general-resources-box">
+                    <!-- General Links will go here -->
+                </div>
+            </div>
+
+            <!-- Actions block -->
+            <div class="drawer-actions-block">
+                <div class="status-select-container">
+                    <span class="status-select-label">Status:</span>
+                    <select id="drawer-status-select" class="status-dropdown">
+                        <option value="not-started">Not Started</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="not-required">Not Required</option>
+                    </select>
+                </div>
+
+                <button id="drawer-add-todo-btn" class="drawer-btn primary">
+                    <span>📅</span> Add to Today's Study Plan
+                </button>
+            </div>
+
+            <!-- Custom Notes -->
+            <div class="drawer-section">
+                <span class="drawer-section-title">Personal Learning Notes</span>
+                <textarea id="drawer-notes" class="notes-area" placeholder="Write summaries, cheat sheets, or links to code files..."></textarea>
+                <div class="notes-save-container">
+                    <button id="drawer-notes-save-btn" class="notes-save-btn">Save Notes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Phase Navigation Outline (Minimap) -->
+    <nav id="roadmap-outline" class="roadmap-outline">
+        <div class="outline-title">Outline</div>
+        <div class="outline-items">
+            <a href="#phase_0" class="outline-item" data-phase-id="phase_0">
+                <span class="dot"></span><span class="label">Phase 0: Prerequisites</span>
+            </a>
+            <a href="#phase_1" class="outline-item" data-phase-id="phase_1">
+                <span class="dot"></span><span class="label">Phase 1: Prompting</span>
+            </a>
+            <a href="#phase_2" class="outline-item" data-phase-id="phase_2">
+                <span class="dot"></span><span class="label">Phase 2: LLM APIs</span>
+            </a>
+            <a href="#phase_3" class="outline-item" data-phase-id="phase_3">
+                <span class="dot"></span><span class="label">Phase 3: Vibe Coding</span>
+            </a>
+            <a href="#phase_4" class="outline-item" data-phase-id="phase_4">
+                <span class="dot"></span><span class="label">Phase 4: Eval & Safety</span>
+            </a>
+            <a href="#phase_5" class="outline-item" data-phase-id="phase_5">
+                <span class="dot"></span><span class="label">Phase 5: RAG & Vector DBs</span>
+            </a>
+            <a href="#phase_6" class="outline-item" data-phase-id="phase_6">
+                <span class="dot"></span><span class="label">Phase 6: Agents & MCP</span>
+            </a>
+            <a href="#phase_7" class="outline-item" data-phase-id="phase_7">
+                <span class="dot"></span><span class="label">Phase 7: Backend & Deploy</span>
+            </a>
+            <a href="#phase_8" class="outline-item" data-phase-id="phase_8">
+                <span class="dot"></span><span class="label">Phase 8: Cyber Security</span>
+            </a>
+        </div>
+    </nav>
+
+
+    <!-- Data and Application Logic -->
+    <script src="roadmap_data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
