@@ -1,0 +1,65 @@
+{
+  "id": "3003-3",
+  "name": "LLM Gateway Module 3: Smart Load Balancer & Router",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger-3",
+      "name": "When clicking Test Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialSendMessage": "🔀 Module 3: Smart Load Balancer & Dynamic Router\n\nTry:\n- Short Prompt: \"Hi\"\n- Medium Prompt: \"Explain compiler design\"\n- Technical Code: \"Analyze database query performance and write 50 lines of complex SQL code\"",
+        "options": {}
+      },
+      "id": "chat-trigger-3",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// CONCEPT 3: SMART LOAD BALANCER & DYNAMIC ROUTER\nconst item = ($input.first() && $input.first().json) ? $input.first().json : {};\nconst prompt = item.chatInput || item.message || item.prompt || 'Analyze database query performance and write 50 lines of complex SQL code';\n\nlet routedProvider = 'azure-openai-primary';\nlet routedModel = 'gpt-4o-mini';\nlet routingReason = 'Cost-Optimized Fast Track';\n\nif (prompt.length > 200 || prompt.toLowerCase().includes('sql') || prompt.toLowerCase().includes('analyze') || prompt.toLowerCase().includes('code')) {\n  routedProvider = 'azure-openai-primary';\n  routedModel = 'gpt-4o';\n  routingReason = 'High-Complexity Technical Query';\n} else if (prompt.length < 30) {\n  routedProvider = 'huggingface-local';\n  routedModel = 'Qwen2.5-0.5B-Instruct';\n  routingReason = 'Local Lightweight Model Fast-Track';\n}\n\nreturn {\n  json: {\n    output: `🔀 [ROUTER DECISION]\\nPrompt: \"${prompt}\"\\nModel Selected: ${routedModel} (${routedProvider})\\nReason: ${routingReason}`,\n    routedModel,\n    routedProvider,\n    routingReason\n  }\n};"
+      },
+      "id": "step-3-node",
+      "name": "Step 3: Load Balancer & Model Classifier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [360, 300]
+    }
+  ],
+  "connections": {
+    "When clicking Test Workflow": {
+      "main": [
+        [
+          {
+            "node": "Step 3: Load Balancer & Model Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Step 3: Load Balancer & Model Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

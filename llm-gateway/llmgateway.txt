@@ -1,0 +1,105 @@
+================================================================================
+          ENTERPRISE LLM GATEWAY MASTERCLASS: BASICS TO ADVANCED GUIDE
+================================================================================
+Workflow ID: 3003
+File Name: llmgateway.txt
+Local Workflow: workflow-3003-llm-gateway.json
+n8n Web UI: http://localhost:5678/workflow/3003
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS (ORDERED ARCHITECTURE PIPELINE)
+--------------------------------------------------------------------------------
+1. INTRODUCTION & ARCHITECTURAL OVERVIEW
+2. MODULE 1: INPUT GUARDRAILS & SECURITY
+3. MODULE 2: AUTOMATIC FALLBACK
+4. MODULE 3: SMART ROUTING
+5. MODULE 4: LOAD BALANCING
+6. MODULE 5: CACHING
+7. MODULE 6: OBSERVABILITY
+8. MODULE 7: EVALS
+
+================================================================================
+1. INTRODUCTION & ARCHITECTURAL OVERVIEW
+================================================================================
+An LLM Gateway is an enterprise reverse-proxy and API orchestration service that 
+sits between application clients (chatbots, web apps, microservices) and multiple 
+downstream LLM providers (Azure OpenAI, OpenAI, Anthropic, Hugging Face, Cohere, vLLM).
+
+Pipeline Flow:
+[Client Request]
+    |
+    v
+[1. Input Guardrails & Security]  ---> (Block PII, Prompt Injections, Jailbreaks)
+    |
+    v
+[2. Automatic Fallback]            ---> (Intercept 429/5xx errors -> Switch to Backup Provider)
+    |
+    v
+[3. Smart Routing]                 ---> (Select GPT-4o vs Fast Model based on complexity/intent)
+    |
+    v
+[4. Load Balancing]                ---> (Distribute across regions & enforce RPM/TPM Rate Limits)
+    |
+    v
+[5. Caching]                       ---> (Check SHA-256 Exact Hash / Semantic Distance -> Return <5ms)
+    |
+    v
+[6. Observability]                 ---> (Log TTFT, Latency, Token Usage & Audit Output Moderation)
+    |
+    v
+[7. Evals]                         ---> (Compute Real-Time Faithfulness & Quality Scores)
+    |
+    v
+[Client Response Delivered]
+
+
+================================================================================
+2. MODULE 1: INPUT GUARDRAILS & SECURITY
+================================================================================
+- PII Detection & Auto-Redaction: Regex & NER models scrub emails, phones, SSNs, credit cards.
+- Prompt Injection & Jailbreak Defense: Blocks direct/indirect injections ("ignore previous instructions", DAN mode).
+- System Prompt Exfiltration Prevention: Intercepts queries seeking internal keys/prompts.
+
+================================================================================
+3. MODULE 2: AUTOMATIC FALLBACK
+================================================================================
+- Multi-Provider Failover Architecture: Primary (Azure OpenAI GPT-4o) failover to Secondary (HuggingFace / Qwen2.5).
+- Circuit Breaker Pattern: Monitors consecutive failure rates (Closed -> Open -> Half-Open).
+- Error Interception: Auto-recovers from HTTP 429 Rate Limits and HTTP 500/503 Service Downtime.
+
+================================================================================
+4. MODULE 3: SMART ROUTING
+================================================================================
+- Complexity-Based Routing: Simple queries -> fast lightweight models (GPT-4o-mini); complex tasks -> frontier models (GPT-4o).
+- Cost & Intent Routing: Dynamically matches request semantics to lowest cost capable model.
+- Latency & SLA-Aware Target Selection: Shifts traffic away from high p95 latency endpoints.
+
+================================================================================
+5. MODULE 4: LOAD BALANCING
+================================================================================
+- Load Balancing Algorithms: Round-Robin, Weighted Distribution, Least Connections.
+- Token Bucket Rate Limiting: Strict RPM / TPM limits per API key.
+- Thundering Herd Prevention: Request collapsing for concurrent identical queries.
+
+================================================================================
+6. MODULE 5: CACHING
+================================================================================
+- Exact String Caching: SHA-256 hash lookup in Redis/In-Memory (<5ms latency, $0 token cost).
+- Semantic Vector Caching: Cosine distance matching (<0.10 threshold) for rephrased queries.
+- Tenant Isolation: Scopes cache keys by organization to ensure data privacy.
+
+================================================================================
+7. MODULE 6: OBSERVABILITY
+================================================================================
+- Enterprise Telemetry Metrics: TTFT (Time To First Token), total execution latency, token counts, dollar costs.
+- Output Moderation: Post-generation safety filter redacting accidental API key disclosures.
+- SIEM Tracing: Structured JSON logs & OpenTelemetry exported to Datadog/Splunk/LangSmith.
+
+================================================================================
+8. MODULE 7: EVALS
+================================================================================
+- Real-Time Quality Scoring: Inline evaluation of response faithfulness, relevance, and safety.
+- LLM-as-a-Judge Framework: Secondary scoring LLM using Ragas / TruLens / DeepEval standards.
+- Drift & Hallucination Monitoring: Continuous auditing for production model alignment.
+
+================================================================================

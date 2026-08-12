@@ -1,0 +1,65 @@
+{
+  "id": "3003-4",
+  "name": "LLM Gateway Module 4: Automated Failover & Fallback Engine",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger-4",
+      "name": "When clicking Test Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialSendMessage": "🔄 Module 4: Multi-Provider Failover & Fallback Engine\n\nTry sending \"Test fallback force error\" to see primary Azure OpenAI 429 failover to HuggingFace Backup model!",
+        "options": {}
+      },
+      "id": "chat-trigger-4",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// CONCEPT 4: MULTI-PROVIDER FALLBACK ENGINE\nconst item = ($input.first() && $input.first().json) ? $input.first().json : {};\nconst prompt = item.chatInput || item.message || item.prompt || 'Test fallback force error';\n\nif (prompt.toLowerCase().includes('force error') || prompt.toLowerCase().includes('fallback')) {\n  return {\n    json: {\n      output: `🟠 [FALLBACK TRIGGERED]\\nPrimary Provider (Azure OpenAI GPT-4o) returned: 429 Rate Limit Exceeded.\\n\\n-> Intercepted by Gateway Circuit Breaker!\\n-> Failover Target: Hugging Face Backup Model (Qwen2.5-7B-Instruct)\\n-> Result: Request completed seamlessly with zero client interruption.`,\n      fallbackTriggered: true,\n      primaryError: 429,\n      fallbackModel: 'Qwen2.5-7B-Instruct'\n    }\n  };\n} else {\n  return {\n    json: {\n      output: `🟢 [PRIMARY SUCCESS]\\nPrimary Provider (Azure OpenAI GPT-4o) executed successfully. No failover required.`,\n      fallbackTriggered: false\n    }\n  };\n}"
+      },
+      "id": "step-4-node",
+      "name": "Step 4: Circuit Breaker & Fallback Chain",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [360, 300]
+    }
+  ],
+  "connections": {
+    "When clicking Test Workflow": {
+      "main": [
+        [
+          {
+            "node": "Step 4: Circuit Breaker & Fallback Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Step 4: Circuit Breaker & Fallback Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

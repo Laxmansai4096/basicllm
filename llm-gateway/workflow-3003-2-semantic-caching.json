@@ -1,0 +1,283 @@
+{
+  "id": "3003-2",
+  "name": "LLM Gateway Module 2: Exact & Semantic Caching Engine",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger-2",
+      "name": "When clicking Test Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialSendMessage": "⚡ Module 2: Exact & Semantic Caching Engine with Azure OpenAI & Vector RAG",
+        "options": {}
+      },
+      "id": "chat-trigger-2",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        100,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// CONCEPT 2: SEMANTIC & PROMPT CACHE LOOKUP\nconst item = ($input.first() && $input.first().json) ? $input.first().json : {};\nconst rawPrompt = item.chatInput || item.message || item.prompt || 'What are the core benefits of microservices?';\nconst normalizedPrompt = rawPrompt.trim().toLowerCase();\nconst cacheKey = 'cache_' + Buffer.from(normalizedPrompt).toString('base64');\n\nif (!global.gatewayCacheStore) {\n  global.gatewayCacheStore = {\n    'cache_d2hhdCBhcmUgdGhlIGNvcmUgYmVuZWZpdHMgb2YgbWljcm9zZXJ2aWNlcz8=': 'Microservices architecture offers independent scalability, fault isolation, and technology flexibility.',\n    'what are the core benefits of microservices?': 'Microservices architecture offers independent scalability, fault isolation, and technology flexibility.'\n  };\n}\n\nconst cachedResponse = global.gatewayCacheStore[cacheKey] || global.gatewayCacheStore[normalizedPrompt] || null;\nconst cacheHit = !!cachedResponse;\n\nif (cacheHit) {\n  return {\n    json: {\n      output: `⚡ [CACHE HIT - 0 Cost, 3ms Latency]\\nResponse: \"${cachedResponse}\"\\nCache Key: ${cacheKey}`,\n      cacheHit: true,\n      rawPrompt,\n      cachedResponse,\n      modelUsed: 'semantic-cache-v1',\n      latencyMs: 3,\n      costUsd: 0.0\n    }\n  };\n} else {\n  return {\n    json: {\n      output: `❌ [CACHE MISS - Forwarding to Azure OpenAI LLM Model]\\nQuery: \"${rawPrompt}\"`,\n      cacheHit: false,\n      rawPrompt,\n      chatInput: rawPrompt,\n      cacheKey\n    }\n  };\n}"
+      },
+      "id": "step-2-cache-check",
+      "name": "Step 2: Semantic Cache Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": ""
+          },
+          "conditions": [
+            {
+              "id": "cache-hit-condition",
+              "leftValue": "={{ $json.cacheHit }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cache-switch",
+      "name": "Cache Hit Switch",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        580,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput || $json.rawPrompt }}",
+        "options": {
+          "systemMessage": "You are an Enterprise Assistant powered by Azure OpenAI. Answer the user prompt accurately."
+        }
+      },
+      "id": "azure-ai-agent",
+      "name": "AI Agent (Azure OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        840,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "model": "=gpt-5.4-mini",
+        "options": {}
+      },
+      "id": "azure-chat-model",
+      "name": "Azure OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        680,
+        640
+      ],
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "Db2cDQ6UUjqFhbIM",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-large",
+        "options": {}
+      },
+      "id": "azure-embeddings",
+      "name": "Embeddings Azure OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        840
+      ],
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "Db2cDQ6UUjqFhbIM",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "memoryKey": "local_rag_store"
+      },
+      "id": "vector-store-retrieve",
+      "name": "In-Memory Vector Store (Retrieve)",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "position": [
+        1160,
+        680
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "name": "document_retriever_tool",
+        "description": "Search and retrieve relevant text segments from the indexed document store to answer user questions."
+      },
+      "id": "vector-store-tool",
+      "name": "Vector Store Q&A Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "position": [
+        1080,
+        520
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "sessionKey": "={{ $json.sessionId || 'default-session' }}"
+      },
+      "id": "simple-memory",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        880,
+        640
+      ],
+      "typeVersion": 1.3
+    }
+  ],
+  "connections": {
+    "When clicking Test Workflow": {
+      "main": [
+        [
+          {
+            "node": "Step 2: Semantic Cache Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Step 2: Semantic Cache Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step 2: Semantic Cache Check": {
+      "main": [
+        [
+          {
+            "node": "Cache Hit Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cache Hit Switch": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI Agent (Azure OpenAI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (Azure OpenAI)",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Vector Store Q&A Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent (Azure OpenAI)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Q&A Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent (Azure OpenAI)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "In-Memory Vector Store (Retrieve)": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Q&A Tool",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Azure OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "In-Memory Vector Store (Retrieve)",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

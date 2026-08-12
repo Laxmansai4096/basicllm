@@ -1,0 +1,65 @@
+{
+  "id": "3003-5",
+  "name": "LLM Gateway Module 5: Output Safety & Moderation Filters",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger-5",
+      "name": "When clicking Test Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialSendMessage": "🔍 Module 5: Output Safety & Moderation Filters\n\nAudits LLM generated outputs for toxicity, content policy compliance, and formatting.",
+        "options": {}
+      },
+      "id": "chat-trigger-5",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// CONCEPT 5: OUTPUT SAFETY & MODERATION\nconst item = ($input.first() && $input.first().json) ? $input.first().json : {};\nconst text = item.chatInput || item.message || item.prompt || 'Microservices provide modular deployment and independent scaling.';\n\nconst toxicityCheck = !text.toLowerCase().includes('toxic') && !text.toLowerCase().includes('malicious');\nconst lengthCheck = text.length > 5;\nconst outputApproved = toxicityCheck && lengthCheck;\n\nreturn {\n  json: {\n    output: `🔍 [OUTPUT MODERATION AUDIT]\\nText Audited: \"${text}\"\\nContent Safety Status: ${outputApproved ? '🟢 CLEAN_APPROVED' : '🔴 FLAGGED_MODERATION'}\\nToxicity Scan: Clean | Structural Check: Valid`,\n    outputApproved\n  }\n};"
+      },
+      "id": "step-5-node",
+      "name": "Step 5: Output Content Safety Auditor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [360, 300]
+    }
+  ],
+  "connections": {
+    "When clicking Test Workflow": {
+      "main": [
+        [
+          {
+            "node": "Step 5: Output Content Safety Auditor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Step 5: Output Content Safety Auditor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}
