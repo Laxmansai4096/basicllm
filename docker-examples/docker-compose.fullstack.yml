@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # 1. API Application Service
+  api-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: production-api-service
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres-db
+      - REDIS_HOST=redis-cache
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_started
+    restart: unless-stopped
+
+  # 2. Database Service (PostgreSQL + PGVector)
+  postgres-db:
+    image: pgvector/pgvector:pg16
+    container_name: postgres-pgvector-db
+    environment:
+      POSTGRES_DB: enterprise_db
+      POSTGRES_USER: postgres_admin
+      POSTGRES_PASSWORD: SecurePassword123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres_admin -d enterprise_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # 3. Redis In-Memory Semantic Cache
+  redis-cache:
+    image: redis:7-alpine
+    container_name: redis-cache-store
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
